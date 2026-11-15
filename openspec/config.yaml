@@ -1,5 +1,12 @@
 schema: spec-driven
 
+context: |
+  成果物（proposal・design・specs・tasks）は日本語で書く。
+  この試作の前提:
+  - 製品にしない試作。実在の会社のデータや機密情報、実データは入れない
+  - lib/core（kotlin-core-app）は Spring に依存しない。DataSource を外から受け取り、DB の実装を持つ
+  - ドメインと DB は ../kotlin-core-app が持ち、composite build（includeBuild）で取り込む。CLI はその上の薄い層にする
+
 # Project context (optional)
 # Add only constraints that should guide OpenSpec artifacts and workflows.
 # Include constraints an agent cannot infer by reading the code.
