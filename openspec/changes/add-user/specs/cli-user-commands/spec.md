@@ -7,11 +7,19 @@
 ## ADDED Requirements
 
 ### Requirement: 会員の data の形
-会員を返すコマンドの --json は、会員を次の項目を持つオブジェクトで出さなければならない（MUST）。id（内部 ID の文字列）・displayNumber（例 "M-000001"）・publicId（UUID の文字列）・email・name・status（"active" か "suspended"）・suspendedAt・suspensionReason・createdAt・updatedAt・createdBy・updatedBy（管理者の内部 ID の文字列）。パスワードとそのハッシュは出してはならない（MUST NOT）。
+会員を返すコマンドの --json は、会員を次の項目を持つオブジェクトで出さなければならない（MUST）。id（内部 ID の文字列）・displayNumber（例 "M-000001"）・publicId（UUID の文字列）・email・name・status（"active" か "suspended"）・suspendedAt・suspensionReason・createdAt・updatedAt・createdBy・updatedBy。createdBy と updatedBy は操作した人を表すオブジェクトで、type（"staff" か "member"）と id（内部 ID の文字列）を持たなければならない（MUST）。パスワードとそのハッシュは出してはならない（MUST NOT）。
 
 #### Scenario: 有効な会員を出す
 - **WHEN** 有効な会員を user get --json で出す
 - **THEN** data に上の 12 項目が全て入り、suspendedAt と suspensionReason は null になる
+
+#### Scenario: 管理者が登録した会員
+- **WHEN** user create --actor 7 で登録した会員を --json で出す
+- **THEN** createdBy と updatedBy は {"type":"staff","id":"7"} になる
+
+#### Scenario: mypage で自分で登録した会員
+- **WHEN** 会員が自分で登録し、内部 ID 100 が払い出された会員を user get --json で出す
+- **THEN** createdBy は {"type":"member","id":"100"} になる
 
 #### Scenario: パスワードを出さない
 - **WHEN** user create・user set-password・user authenticate を --json で実行する

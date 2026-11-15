@@ -7,7 +7,7 @@
 ## What Changes
 
 - `user create|list|get|update|suspend|activate|set-password|authenticate` を足す
-- 会員の --json の形（data）を決め、`docs/json-contract.md` に足す
+- 会員の --json の形（data）を決め、`docs/json-contract.md` に足す。登録と最終変更をした人は、管理者か会員本人かが分かる形で出す
 - パスワードを引数の値で受け取らない方法（標準入力か、表示しない入力）を足す
 - 内部 ID を作るために、CLI の app-id（CORE_APP_ID）を読む
 
