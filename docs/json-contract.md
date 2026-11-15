@@ -70,3 +70,46 @@ dashboard が `core-cli ... --json` の標準出力を読む。ここに書い�
 ```
 
 `state` は `applied` / `pending` / `failed` / `other`。未適用の行は `installedAt` が `null`。
+
+### 会員（user のコマンドが返す会員の形）
+
+```json
+{
+  "id": "115575710177275904",
+  "displayNumber": "M-000001",
+  "publicId": "eb1dda65-3f16-40e7-8400-421961440b41",
+  "email": "taro@example.com",
+  "name": "山田 太郎",
+  "status": "active",
+  "suspendedAt": null,
+  "suspensionReason": null,
+  "createdAt": "2026-11-16T03:00:00.000Z",
+  "updatedAt": "2026-11-16T03:00:00.000Z",
+  "createdBy": {"type": "staff", "id": "7"},
+  "updatedBy": {"type": "staff", "id": "7"}
+}
+```
+
+- `status` は `active` / `suspended`。停止中だけ `suspendedAt` が値を持つ。`suspensionReason` は停止中でも理由が無ければ `null`
+- `createdBy` / `updatedBy` は操作した人。`type` は `staff`（管理者）か `member`（会員本人。mypage で自分で登録・変更したとき）で、`id` はその内部 ID の文字列
+- パスワードとそのハッシュは出さない
+
+### user create / get / update / suspend / activate / set-password
+
+data は会員 1 人（上の形）。
+
+### user list
+
+```json
+{"items": [ /* 会員 */ ], "total": 5, "limit": 50, "offset": 0}
+```
+
+`items` は表示用の番号の昇順。`total` は絞り込みに当たる全件数。
+
+### user authenticate
+
+```json
+{"authenticated": true, "user": { /* 会員 */ }}
+```
+
+失敗は理由（いない・停止中・パスワード違い）を区別せず、全て `AUTH_FAILED`（終了コード 6）。

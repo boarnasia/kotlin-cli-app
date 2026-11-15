@@ -1,5 +1,7 @@
 package io.github.boarnasia.cli
 
+import io.github.boarnasia.core.db.CoreErrorKind
+import java.io.InputStream
 import java.io.PrintStream
 import java.time.Instant
 import java.time.ZoneId
@@ -26,7 +28,35 @@ enum class ErrorCode(val exitCode: Int) {
 
 class CliFailure(val code: ErrorCode, override val message: String) : RuntimeException(message)
 
-class CliIo(val out: PrintStream, val err: PrintStream) {
+fun CoreErrorKind.toErrorCode(): ErrorCode = when (this) {
+    CoreErrorKind.NOT_FOUND -> ErrorCode.NOT_FOUND
+    CoreErrorKind.CONFLICT -> ErrorCode.CONFLICT
+    CoreErrorKind.VALIDATION -> ErrorCode.VALIDATION
+    CoreErrorKind.AUTH_FAILED -> ErrorCode.AUTH_FAILED
+}
+
+/** 表示しない入力でパスワードを読む。端末が無ければ null。 */
+fun interface PasswordConsole {
+    fun readPassword(prompt: String): String?
+
+    companion object {
+        val NONE = PasswordConsole { null }
+
+        // JDK 22 以降は端末でなくても Console が返るので、端末かどうかを別に確かめる
+        val SYSTEM = PasswordConsole { prompt ->
+            System.console()?.takeIf { it.isTerminal }?.readPassword(prompt)?.let(::String)
+        }
+    }
+}
+
+class CliIo(
+    val out: PrintStream,
+    val err: PrintStream,
+    val input: InputStream = InputStream.nullInputStream(),
+    val console: PasswordConsole = PasswordConsole.NONE,
+    /** .env と環境変数を合わせたもの。 */
+    val env: Map<String, String> = emptyMap(),
+) {
     /** 実行中のコマンド（例 "db status"）。失敗を --json で返すときに入れる。 */
     var command: String? = null
 }

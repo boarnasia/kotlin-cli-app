@@ -1,5 +1,6 @@
 package io.github.boarnasia.cli
 
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldMatch
@@ -33,9 +34,11 @@ class DbCommandsTest {
         json["command"] shouldBe JsonPrimitive("db migrate")
         val data = json["data"]!!.jsonObject
         data.keys shouldBe setOf("path", "appliedCount", "applied", "currentVersion")
-        data["appliedCount"]!!.jsonPrimitive.int shouldBe 1
-        data["currentVersion"] shouldBe JsonPrimitive("1")
-        val applied = data["applied"]!!.jsonArray.single().jsonObject
+        val appliedList = data["applied"]!!.jsonArray
+        data["appliedCount"]!!.jsonPrimitive.int shouldBe appliedList.size
+        appliedList.size shouldBeGreaterThan 0
+        data["currentVersion"] shouldBe appliedList.last().jsonObject["version"]
+        val applied = appliedList.first().jsonObject
         applied["state"] shouldBe JsonPrimitive("applied")
         applied["installedAt"]!!.jsonPrimitive.content shouldMatch Regex("""\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z""")
     }
@@ -50,7 +53,9 @@ class DbCommandsTest {
         val data = result.json["data"]!!.jsonObject
         data.keys shouldBe setOf("path", "currentVersion", "pendingCount", "migrations")
         data["pendingCount"]!!.jsonPrimitive.int shouldBe 0
-        data["migrations"]!!.jsonArray.single().jsonObject["version"] shouldBe JsonPrimitive("1")
+        val migrations = data["migrations"]!!.jsonArray.map { it.jsonObject }
+        migrations.forEach { it["state"] shouldBe JsonPrimitive("applied") }
+        data["currentVersion"] shouldBe migrations.last()["version"]
     }
 
     @Test
@@ -99,7 +104,8 @@ class DbCommandsTest {
 
         val done = cli("db", "reset", "--db", db, "--yes", "--json")
         done.exitCode shouldBe 0
-        done.json["data"]!!.jsonObject["appliedCount"]!!.jsonPrimitive.int shouldBe 1
+        val doneData = done.json["data"]!!.jsonObject
+        doneData["appliedCount"]!!.jsonPrimitive.int shouldBe doneData["applied"]!!.jsonArray.size
     }
 
     @Test
@@ -120,7 +126,7 @@ class DbCommandsTest {
     fun `成功の JSON でも値の無い項目は null で出す`() {
         val result = cli("db", "status", "--db", db.also { cli("db", "migrate", "--db", it) }, "--json")
 
-        result.json["data"]!!.jsonObject["migrations"]!!.jsonArray.single().jsonObject.keys shouldBe
+        result.json["data"]!!.jsonObject["migrations"]!!.jsonArray.first().jsonObject.keys shouldBe
             setOf("version", "description", "state", "installedAt")
         Json.parseToJsonElement(CliJson.failure(null, ErrorCode.INTERNAL, "x")).jsonObject["command"] shouldBe JsonNull
     }
