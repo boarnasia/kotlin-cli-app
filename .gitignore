@@ -1,0 +1,10 @@
+.gradle/
+.kotlin/
+build/
+.idea/
+*.iml
+.DS_Store
+.env
+*.db
+*.db-wal
+*.db-shm
