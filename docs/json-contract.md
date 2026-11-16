@@ -2,6 +2,8 @@
 
 dashboard が `core-cli ... --json` の標準出力を読む。ここに書いた形は互換性を保って変える（項目を足すのは可、名前を変える・消す・型を変えるのは `contractVersion` を上げる）。
 
+`error.code` と終了コードは、`contractVersion` を上げずに今後増えることがある。呼び出し側は、知らない `error.code` や終了コードを失敗として扱う。
+
 ## 共通の形
 
 出力は 1 行の JSON オブジェクト。成功も失敗も標準出力に出す。
@@ -40,6 +42,15 @@ dashboard が `core-cli ... --json` の標準出力を読む。ここに書い�
 | 4 | `CONFLICT` | 状態が合わない、重複、在庫不足など |
 | 5 | `VALIDATION` | 入力の値が正しくない |
 | 6 | `AUTH_FAILED` | パスワードの照合に失敗した |
+| 7 | `FORBIDDEN` | `--actor` の管理者がいない・停止中・要る権限が無い |
+
+## --actor
+
+`db` のコマンド・`user authenticate`・`staff authenticate`・`staff bootstrap` を除く全てのコマンドは、閲覧を含めて `--actor` に操作した管理者を必須で取る。管理者の内部 ID か表示用の番号（例 `S-000001`）を渡す。
+
+- 無いとき、どちらの形でもないとき（`M-` の番号や UUID など）は `USAGE`（2）
+- いない・停止中・要る権限が無い管理者は `FORBIDDEN`（7）。対象がいるかどうかより先に確かめるので、権限が無ければ対象がいなくても `NOT_FOUND` にはならない
+- dashboard は、読む権限（`member:read` など）だけを持つ管理者を `staff create` で作り、その番号を渡す
 
 ## コマンドごとの data
 
@@ -85,8 +96,8 @@ dashboard が `core-cli ... --json` の標準出力を読む。ここに書い�
   "suspensionReason": null,
   "createdAt": "2026-11-16T03:00:00.000Z",
   "updatedAt": "2026-11-16T03:00:00.000Z",
-  "createdBy": {"type": "staff", "id": "7"},
-  "updatedBy": {"type": "staff", "id": "7"}
+  "createdBy": {"type": "staff", "id": "115575700000000000"},
+  "updatedBy": {"type": "staff", "id": "115575700000000000"}
 }
 ```
 
@@ -110,6 +121,48 @@ data は会員 1 人（上の形）。
 
 ```json
 {"authenticated": true, "user": { /* 会員 */ }}
+```
+
+失敗は理由（いない・停止中・パスワード違い）を区別せず、全て `AUTH_FAILED`（終了コード 6）。
+
+### 管理者（staff のコマンドが返す管理者の形）
+
+```json
+{
+  "id": "115575700000000000",
+  "displayNumber": "S-000001",
+  "email": "admin@example.com",
+  "name": "最初の管理者",
+  "status": "active",
+  "permissions": ["member:read", "member:write", "order:read", "order:cancel-approve", "item:write", "notice:write", "staff:admin"],
+  "suspendedAt": null,
+  "suspensionReason": null,
+  "createdAt": "2026-11-17T03:00:00.000Z",
+  "updatedAt": "2026-11-17T03:00:00.000Z",
+  "createdBy": {"type": "staff", "id": "115575700000000000"},
+  "updatedBy": {"type": "staff", "id": "115575700000000000"}
+}
+```
+
+- 管理者は公開 ID を持たないので `publicId` は無い。パスワードとそのハッシュは出さない
+- `permissions` は持つ権限だけを、上の例の順（7 種類の決めた順）に並べた配列。権限が無ければ `[]`
+- `member:write` は `member:read` を、`order:cancel-approve` は `order:read` を含む（配列には付けた権限だけが出る）
+- `status`・`suspendedAt`・`suspensionReason`・`createdBy`・`updatedBy` は会員と同じ。`staff bootstrap` で作った管理者は、登録した人が自分自身
+
+### staff bootstrap / create / get / update / suspend / activate / set-password
+
+data は管理者 1 人（上の形）。`staff bootstrap` は管理者が 1 人でもいれば `CONFLICT`（4）。
+
+### staff list
+
+```json
+{"items": [ /* 管理者 */ ], "total": 2, "limit": 50, "offset": 0}
+```
+
+### staff authenticate
+
+```json
+{"authenticated": true, "staff": { /* 管理者 */ }}
 ```
 
 失敗は理由（いない・停止中・パスワード違い）を区別せず、全て `AUTH_FAILED`（終了コード 6）。

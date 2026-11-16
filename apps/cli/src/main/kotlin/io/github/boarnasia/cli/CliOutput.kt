@@ -24,6 +24,7 @@ enum class ErrorCode(val exitCode: Int) {
     CONFLICT(4),
     VALIDATION(5),
     AUTH_FAILED(6),
+    FORBIDDEN(7),
 }
 
 class CliFailure(val code: ErrorCode, override val message: String) : RuntimeException(message)
@@ -33,6 +34,7 @@ fun CoreErrorKind.toErrorCode(): ErrorCode = when (this) {
     CoreErrorKind.CONFLICT -> ErrorCode.CONFLICT
     CoreErrorKind.VALIDATION -> ErrorCode.VALIDATION
     CoreErrorKind.AUTH_FAILED -> ErrorCode.AUTH_FAILED
+    CoreErrorKind.FORBIDDEN -> ErrorCode.FORBIDDEN
 }
 
 /** 表示しない入力でパスワードを読む。端末が無ければ null。 */

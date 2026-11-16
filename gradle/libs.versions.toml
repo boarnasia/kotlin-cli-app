@@ -12,6 +12,7 @@ kotlin-serialization-plugin = { module = "org.jetbrains.kotlin:kotlin-serializat
 # composite build で ../kotlin-core-app のプロジェクトに置き換わるので、バージョンは持たない
 core-db = { module = "io.github.boarnasia.core:db" }
 core-user = { module = "io.github.boarnasia.core:user" }
+core-staff = { module = "io.github.boarnasia.core:staff" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4j" }

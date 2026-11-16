@@ -10,6 +10,7 @@ import com.github.ajalt.clikt.core.parse
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.core.UsageError
 import io.github.boarnasia.cli.db.dbCommand
+import io.github.boarnasia.cli.staff.staffCommand
 import io.github.boarnasia.cli.user.userCommand
 import io.github.boarnasia.core.db.CoreException
 import java.nio.file.Path
@@ -37,7 +38,7 @@ fun runCli(args: List<String>, io: CliIo): Int {
     // 引数の解析に失敗したときも、--json を付けていれば失敗を JSON で返す
     val wantsJson = "--json" in args
     val root = RootCommand()
-        .subcommands(dbCommand(io), userCommand(io))
+        .subcommands(dbCommand(io), staffCommand(io), userCommand(io))
         .context { readEnvvar = { io.env[it] } }
 
     fun fail(code: ErrorCode, message: String): Int {

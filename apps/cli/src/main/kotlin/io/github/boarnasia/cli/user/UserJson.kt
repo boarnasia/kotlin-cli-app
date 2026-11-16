@@ -1,22 +1,12 @@
 package io.github.boarnasia.cli.user
 
-import io.github.boarnasia.cli.Jst
-import io.github.boarnasia.core.db.Actor
+import io.github.boarnasia.cli.ActorJson
+import io.github.boarnasia.cli.actorLabel
+import io.github.boarnasia.cli.jst
+import io.github.boarnasia.cli.statusLabel
 import io.github.boarnasia.core.db.UtcTimestamps
 import io.github.boarnasia.core.user.Member
 import kotlinx.serialization.Serializable
-
-/** 操作した人。管理者と会員の内部 ID は別の表の主キーなので、型と組で出す。 */
-@Serializable
-data class ActorJson(
-    /** staff / member */
-    val type: String,
-    val id: String,
-) {
-    companion object {
-        fun of(actor: Actor) = ActorJson(type = actor.type.dbValue, id = actor.id.toString())
-    }
-}
 
 @Serializable
 data class MemberJson(
@@ -68,17 +58,3 @@ data class MemberListJson(val items: List<MemberJson>, val total: Int, val limit
 
 @Serializable
 data class AuthenticateJson(val authenticated: Boolean, val user: MemberJson)
-
-internal fun statusLabel(status: String) = when (status) {
-    "active" -> "有効"
-    "suspended" -> "停止"
-    else -> status
-}
-
-private fun actorLabel(actor: ActorJson) = when (actor.type) {
-    "staff" -> "管理者 ${actor.id}"
-    "member" -> "会員本人 ${actor.id}"
-    else -> "${actor.type} ${actor.id}"
-}
-
-private fun jst(utc: String) = Jst.format(UtcTimestamps.parse(utc))

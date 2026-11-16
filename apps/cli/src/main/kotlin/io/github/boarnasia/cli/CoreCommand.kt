@@ -2,18 +2,25 @@ package io.github.boarnasia.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.options.validate
-import com.github.ajalt.clikt.parameters.types.long
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.boarnasia.core.db.Actor
 import io.github.boarnasia.core.db.CoreDb
+import io.github.boarnasia.core.db.id.DisplayNumberKind
+import io.github.boarnasia.core.db.id.EntityRef
+import io.github.boarnasia.core.db.id.IdGenerator
 import io.github.boarnasia.core.db.id.SnowflakeIdGenerator
+import io.github.boarnasia.core.password.Argon2idPasswordHasher
+import io.github.boarnasia.core.staff.StaffService
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.serialization.KSerializer
+
+// 読むだけのコマンドは内部 ID を作らないので、呼ばれたら設定の誤りとして気づけるようにする
+val NO_ID_GENERATOR = IdGenerator { error("読み取りのコマンドで内部 ID を作ろうとしました") }
 
 /** 実際に処理をするコマンド（db status など）の共通部分。 */
 abstract class CoreCommand(name: String, private val summary: String, protected val io: CliIo) : CliktCommand(name) {
@@ -51,30 +58,6 @@ abstract class DbCommand(name: String, summary: String, io: CliIo) : CoreCommand
         return CoreDb.openFile(absoluteDbPath)
     }
 
-    protected fun openOrCreateDb(): CoreDb {
-        val parent = absoluteDbPath.parent
-        if (parent != null && !Files.isDirectory(parent)) {
-            throw CliFailure(ErrorCode.DB_NOT_FOUND, "core.db を置くディレクトリがありません: $parent")
-        }
-        return CoreDb.openFile(absoluteDbPath)
-    }
-
-    companion object {
-        const val ENV_DB_PATH = "CORE_DB_PATH"
-    }
-}
-
-/** core.db のデータを書き換えるコマンド。操作した管理者を --actor で必ず受け取る。 */
-abstract class WriteCommand(name: String, summary: String, io: CliIo) : DbCommand(name, summary, io) {
-
-    // 管理者の表ができるまでは内部 ID だけを受け取り、いるかどうかは確かめない（S- の番号での指定は staff モジュールで足す）
-    private val actorId: Long by option("--actor", help = "操作した管理者の内部 ID")
-        .long()
-        .required()
-        .validate { require(it > 0) { "--actor には管理者の内部 ID（正の整数）を指定してください" } }
-
-    protected val actor: Actor.Staff get() = Actor.Staff(actorId)
-
     /** 内部 ID を作る。CORE_APP_ID は書き込みのときだけ要るので、ここで初めて読む。 */
     protected fun idGenerator(): SnowflakeIdGenerator {
         val raw = io.env[ENV_APP_ID]
@@ -86,9 +69,37 @@ abstract class WriteCommand(name: String, summary: String, io: CliIo) : DbComman
         return SnowflakeIdGenerator(appId)
     }
 
+    protected fun openOrCreateDb(): CoreDb {
+        val parent = absoluteDbPath.parent
+        if (parent != null && !Files.isDirectory(parent)) {
+            throw CliFailure(ErrorCode.DB_NOT_FOUND, "core.db を置くディレクトリがありません: $parent")
+        }
+        return CoreDb.openFile(absoluteDbPath)
+    }
+
     companion object {
+        const val ENV_DB_PATH = "CORE_DB_PATH"
         const val ENV_APP_ID = "CORE_APP_ID"
     }
+}
+
+/**
+ * 管理者として操作するコマンド。閲覧を含めて、操作した管理者を --actor で必ず受け取る。
+ * ここでは形だけを確かめ、いて有効で権限を持つかは core のユースケースがトランザクションの中で確かめる。
+ */
+abstract class StaffActorCommand(name: String, summary: String, io: CliIo) : DbCommand(name, summary, io) {
+
+    private val actorRef: EntityRef by option("--actor", help = "操作した管理者の内部 ID か表示用の番号（例 S-000001）")
+        .convert { raw ->
+            val ref = runCatching { EntityRef.parse(raw) }.getOrNull()
+            val isStaff = ref is EntityRef.Internal || (ref is EntityRef.Display && ref.number.kind == DisplayNumberKind.STAFF)
+            if (!isStaff) fail("--actor には管理者の内部 ID（正の整数）か S- の番号を指定してください: $raw")
+            ref!!
+        }
+        .required()
+
+    /** S- の番号は内部 ID に引き直す。当たらなければ core が FORBIDDEN にする。 */
+    protected fun actor(db: CoreDb): Actor.Staff = StaffService(db, NO_ID_GENERATOR, Argon2idPasswordHasher()).resolveActor(actorRef)
 }
 
 /** パスワードを読む。シェルの履歴やプロセスの一覧に残らないよう、引数の値では受け取らない。 */
