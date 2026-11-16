@@ -166,3 +166,90 @@ data は管理者 1 人（上の形）。`staff bootstrap` は管理者が 1 人
 ```
 
 失敗は理由（いない・停止中・パスワード違い）を区別せず、全て `AUTH_FAILED`（終了コード 6）。
+
+### 商品（item のコマンドが返す商品の形）
+
+```json
+{
+  "id": "115900000000000000",
+  "displayNumber": "I-000001",
+  "name": "ノート",
+  "description": "A5 の方眼",
+  "price": 300,
+  "status": "published",
+  "publishedAt": "2026-11-17T03:05:00.000Z",
+  "deletedAt": null,
+  "stock": {"onHand": 10, "reserved": 3, "available": 7},
+  "createdAt": "2026-11-17T03:00:00.000Z",
+  "updatedAt": "2026-11-17T03:05:00.000Z",
+  "createdBy": {"type": "staff", "id": "115575700000000000"},
+  "updatedBy": {"type": "staff", "id": "115575700000000000"}
+}
+```
+
+- 商品は公開 ID を持たないので `publicId` は無い
+- `price` は円の整数。0〜1,000,000,000
+- `status` は `unpublished`（非公開）・`published`（公開）・`deleted`（削除済み）のどれか。登録した直後は `unpublished`
+- `publishedAt` は公開中だけ値を持つ（最後に公開した時刻）。`deletedAt` は削除済みだけ値を持つ
+- `description` は無ければ `null`
+- `stock` は読んだ時点の在庫。`available`（注文可能数）は `onHand − reserved`。在庫の変動では `updatedAt`・`updatedBy` は変わらない
+
+### item create / get / update / publish / unpublish / delete
+
+data は商品 1 つ（上の形）。
+
+- 許されない遷移（公開中の `publish`、非公開の `unpublish`）と、削除済みの商品への操作は `CONFLICT`（4）
+- `item delete` は `--yes` が無ければ `USAGE`（2）。引当のある商品（受付中の注文がある商品）は `CONFLICT`（4）
+- `item update` は `--name`・`--price`・`--description` のどれも無ければ `VALIDATION`（5）。`--description ""` は説明を消す
+- 商品の指定は内部 ID か `I-` の番号。ほかの種類の番号と UUID は `VALIDATION`（5）
+
+### item list
+
+```json
+{"items": [ /* 商品 */ ], "total": 2, "limit": 50, "offset": 0}
+```
+
+`--status` を省いたら削除済みを除く。
+
+### 在庫（stock show が返す形）
+
+```json
+{"itemId": "115900000000000000", "displayNumber": "I-000001", "onHand": 10, "reserved": 3, "available": 7, "updatedAt": "2026-11-17T03:05:00.000Z"}
+```
+
+### 在庫の変動
+
+```json
+{
+  "id": "115900000000000001",
+  "itemId": "115900000000000000",
+  "kind": "adjust",
+  "onHandDelta": 10,
+  "reservedDelta": 0,
+  "onHandAfter": 10,
+  "reservedAfter": 0,
+  "reason": "入荷",
+  "orderId": null,
+  "createdAt": "2026-11-17T03:01:00.000Z",
+  "createdBy": {"type": "staff", "id": "115575700000000000"}
+}
+```
+
+- `kind` は `adjust`（手動の調整、在庫数だけ）・`reserve`（注文の引当、引当だけ +）・`release`（キャンセルの承認による戻し、引当だけ −）・`ship`（注文の完了による出荷、在庫数と引当を同じ数だけ −）のどれか
+- `onHandAfter`・`reservedAfter` は変動した後の在庫数と引当
+- `reason` は調整の理由（調整では必ずある）。`orderId` は引当・戻し・出荷のときの注文の内部 ID の文字列で、調整では `null`
+
+### stock adjust
+
+```json
+{"stock": { /* 在庫 */ }, "movement": { /* 在庫の変動 */ }}
+```
+
+- `--delta` は 0 以外の整数（負の数で減らす）。整数でなければ `USAGE`（2）、0 は `VALIDATION`（5）
+- 調整した後の在庫数が引当を下回るときと、削除済みの商品は `CONFLICT`（4）
+
+### stock history
+
+```json
+{"items": [ /* 在庫の変動、新しい順 */ ], "total": 2, "limit": 50, "offset": 0}
+```
