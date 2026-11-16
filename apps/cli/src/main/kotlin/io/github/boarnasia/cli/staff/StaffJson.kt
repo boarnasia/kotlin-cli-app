@@ -1,7 +1,7 @@
 package io.github.boarnasia.cli.staff
 
 import io.github.boarnasia.cli.ActorJson
-import io.github.boarnasia.cli.actorLabel
+import io.github.boarnasia.cli.ActorLabels
 import io.github.boarnasia.cli.jst
 import io.github.boarnasia.cli.statusLabel
 import io.github.boarnasia.core.db.UtcTimestamps
@@ -25,15 +25,15 @@ data class StaffJson(
     val createdBy: ActorJson,
     val updatedBy: ActorJson,
 ) {
-    fun human(): String = buildList {
+    fun human(labels: ActorLabels): String = buildList {
         add("$displayNumber  ${statusLabel(status)}")
         add("  内部 ID:   $id")
         add("  メール:    $email")
         add("  名前:      $name")
         add("  権限:      ${permissionsLabel()}")
         suspendedAt?.let { add("  停止:      ${jst(it)}${suspensionReason?.let { r -> "（$r）" } ?: ""}") }
-        add("  登録:      ${jst(createdAt)}（${actorLabel(createdBy)}）")
-        add("  最終変更:  ${jst(updatedAt)}（${actorLabel(updatedBy)}）")
+        add("  登録:      ${jst(createdAt)}（${labels.of(createdBy)}）")
+        add("  最終変更:  ${jst(updatedAt)}（${labels.of(updatedBy)}）")
     }.joinToString("\n")
 
     fun permissionsLabel(): String = permissions.joinToString(",").ifEmpty { "（なし）" }

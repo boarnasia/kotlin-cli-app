@@ -99,6 +99,36 @@ class UserCommandsTest {
     }
 
     @Test
+    fun `人向けの表示では操作した人を番号で出し、--json の createdBy と updatedBy は内部 ID のまま`() {
+        val db = CoreDb.openFile(dir.resolve("core.db"))
+        val member = UserService(db, SnowflakeIdGenerator(1), Argon2idPasswordHasher()).register("self@example.com", "本人", "correct horse", Registrant.Self)
+        val editor = staff("member:write")
+        run("user", "update", "M-000001", "--name", "本人 改", "--actor", editor).exitCode shouldBe 0
+
+        val human = run("user", "get", "--actor", ADMIN, "M-000001").out
+        human shouldContain "登録:      "
+        human shouldContain "（会員本人 M-000001）"
+        human shouldContain "（管理者 $editor）"
+        // 内部 ID は「内部 ID:」の行にだけ出る
+        human.lines().filter { "登録:" in it || "最終変更:" in it }.none { member.id.toString() in it } shouldBe true
+
+        val json = run("user", "get", "--actor", ADMIN, "M-000001", "--json").json["data"]!!.jsonObject
+        json["createdBy"] shouldBe actor("member", member.id.toString())
+        json["updatedBy"]!!.jsonObject.keys shouldBe setOf("type", "id")
+    }
+
+    @Test
+    fun `番号が引けない操作した人は内部 ID で出す`() {
+        create()
+        CoreDb.openFile(dir.resolve("core.db")).write { it.execute("UPDATE member SET created_by_id = 4242") }
+
+        val human = run("user", "get", "--actor", ADMIN, "M-000001").out
+
+        human shouldContain "（管理者 4242）"
+        human shouldContain "（管理者 S-000001）"
+    }
+
+    @Test
     fun `出力にパスワードもハッシュも含めない`() {
         val outputs = listOf(
             run("user", "create", "--email", "a@example.com", "--name", "A", "--password-stdin", "--actor", ADMIN, "--json", stdin = "correct horse\n"),
@@ -312,7 +342,9 @@ class UserCommandsTest {
 
         val one = run("user", "get", "--actor", ADMIN, "M-000001")
         one.out shouldContain "JST"
-        one.out shouldContain "管理者 $adminId"
+        one.out shouldContain "（管理者 S-000001）"
+        // 内部 ID は「内部 ID:」の行にだけ出る
+        one.out.lines().filter { "登録:" in it || "最終変更:" in it }.none { adminId in it } shouldBe true
 
         val failed = run("user", "get", "--actor", ADMIN, "M-999999")
         failed.exitCode shouldBe 3

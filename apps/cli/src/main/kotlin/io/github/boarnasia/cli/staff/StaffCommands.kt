@@ -62,8 +62,9 @@ class StaffBootstrapCommand(io: CliIo) : DbCommand("bootstrap", "管理者がい
     override fun execute() {
         val ids = idGenerator()
         val password = PasswordInput.read(io, passwordStdin, confirm = true)
-        val staff = staffs(openExistingDb(), ids).bootstrap(email, name, password)
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        val db = openExistingDb()
+        val staff = staffs(db, ids).bootstrap(email, name, password)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -79,7 +80,7 @@ class StaffCreateCommand(io: CliIo) : StaffActorCommand("create", "管理者を�
         val actor = actor(db)
         val password = PasswordInput.read(io, passwordStdin, confirm = true)
         val staff = staffs(db, ids).register(email, name, password, permissions.toSet(), actor)
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -112,7 +113,7 @@ class StaffGetCommand(io: CliIo) : StaffActorCommand("get", "管理者を 1 人�
     override fun execute() {
         val db = openExistingDb()
         val staff = staffs(db).get(ref, actor(db))
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -126,7 +127,7 @@ class StaffUpdateCommand(io: CliIo) : StaffActorCommand("update", "管理者の�
     override fun execute() {
         val db = openExistingDb()
         val staff = staffs(db).update(ref, email, name, grant.toSet(), revoke.toSet(), actor(db))
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -137,7 +138,7 @@ class StaffSuspendCommand(io: CliIo) : StaffActorCommand("suspend", "有効な�
     override fun execute() {
         val db = openExistingDb()
         val staff = staffs(db).suspend(ref, reason, actor(db))
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -147,7 +148,7 @@ class StaffActivateCommand(io: CliIo) : StaffActorCommand("activate", "停止中
     override fun execute() {
         val db = openExistingDb()
         val staff = staffs(db).activate(ref, actor(db))
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 
@@ -160,7 +161,7 @@ class StaffSetPasswordCommand(io: CliIo) : StaffActorCommand("set-password", "�
         val actor = actor(db)
         val password = PasswordInput.read(io, passwordStdin, confirm = true)
         val staff = staffs(db).setPassword(ref, password, actor)
-        respond(StaffJson.serializer(), StaffJson.of(staff), StaffJson::human)
+        respond(db, StaffJson.serializer(), StaffJson.of(staff), listOf(staff.createdBy, staff.updatedBy), StaffJson::human)
     }
 }
 

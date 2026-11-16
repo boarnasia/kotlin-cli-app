@@ -233,4 +233,19 @@ class StaffCommandsTest {
         one shouldContain "権限:      member:read,order:read"
         one shouldContain "JST"
     }
+
+    @Test
+    fun `人向けの表示では登録と最終変更をした管理者を S- の番号で出す`() {
+        val adminId = bootstrap().data["id"]!!.jsonPrimitive.content
+        create("editor@example.com", "staff:admin")
+        run("staff", "update", "S-000001", "--name", "改名", "--actor", "S-000002").exitCode shouldBe 0
+
+        val one = run("staff", "get", "S-000001", "--actor", "S-000001").out
+
+        one shouldContain "登録:      "
+        one shouldContain "（管理者 S-000001）"
+        one shouldContain "（管理者 S-000002）"
+        // 内部 ID は「内部 ID:」の行にだけ出る
+        one.lines().filter { "登録:" in it || "最終変更:" in it }.none { adminId in it } shouldBe true
+    }
 }

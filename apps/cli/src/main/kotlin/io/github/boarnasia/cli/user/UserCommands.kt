@@ -55,7 +55,7 @@ class UserCreateCommand(io: CliIo) : StaffActorCommand("create", "会員を登�
         val actor = actor(db)
         val password = PasswordInput.read(io, passwordStdin, confirm = true)
         val member = users(db, ids).register(email, name, password, Registrant.ByStaff(actor))
-        respond(MemberJson.serializer(), MemberJson.of(member), MemberJson::human)
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 
@@ -85,7 +85,8 @@ class UserGetCommand(io: CliIo) : StaffActorCommand("get", "会員を 1 人表�
 
     override fun execute() {
         val db = openExistingDb()
-        respond(MemberJson.serializer(), MemberJson.of(users(db).get(ref, actor(db))), MemberJson::human)
+        val member = users(db).get(ref, actor(db))
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 
@@ -97,7 +98,7 @@ class UserUpdateCommand(io: CliIo) : StaffActorCommand("update", "会員のメ�
     override fun execute() {
         val db = openExistingDb()
         val member = users(db).update(ref, email, name, actor(db))
-        respond(MemberJson.serializer(), MemberJson.of(member), MemberJson::human)
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 
@@ -108,7 +109,7 @@ class UserSuspendCommand(io: CliIo) : StaffActorCommand("suspend", "有効な会
     override fun execute() {
         val db = openExistingDb()
         val member = users(db).suspend(ref, reason, actor(db))
-        respond(MemberJson.serializer(), MemberJson.of(member), MemberJson::human)
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 
@@ -118,7 +119,7 @@ class UserActivateCommand(io: CliIo) : StaffActorCommand("activate", "停止中�
     override fun execute() {
         val db = openExistingDb()
         val member = users(db).activate(ref, actor(db))
-        respond(MemberJson.serializer(), MemberJson.of(member), MemberJson::human)
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 
@@ -131,7 +132,7 @@ class UserSetPasswordCommand(io: CliIo) : StaffActorCommand("set-password", "会
         val actor = actor(db)
         val password = PasswordInput.read(io, passwordStdin, confirm = true)
         val member = users(db).setPassword(ref, password, actor)
-        respond(MemberJson.serializer(), MemberJson.of(member), MemberJson::human)
+        respond(db, MemberJson.serializer(), MemberJson.of(member), listOf(member.createdBy, member.updatedBy), MemberJson::human)
     }
 }
 

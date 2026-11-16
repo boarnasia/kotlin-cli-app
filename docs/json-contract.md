@@ -102,7 +102,7 @@ dashboard が `core-cli ... --json` の標準出力を読む。ここに書い�
 ```
 
 - `status` は `active` / `suspended`。停止中だけ `suspendedAt` が値を持つ。`suspensionReason` は停止中でも理由が無ければ `null`
-- `createdBy` / `updatedBy` は操作した人。`type` は `staff`（管理者）か `member`（会員本人。mypage で自分で登録・変更したとき）で、`id` はその内部 ID の文字列
+- `createdBy` / `updatedBy` は操作した人。`type` は `staff`（管理者）か `member`（会員本人。mypage で自分で登録・変更したとき）で、`id` はその内部 ID の文字列。人向けの表示では S-・M- の番号で出すが、`--json` は内部 ID のまま
 - パスワードとそのハッシュは出さない
 
 ### user create / get / update / suspend / activate / set-password

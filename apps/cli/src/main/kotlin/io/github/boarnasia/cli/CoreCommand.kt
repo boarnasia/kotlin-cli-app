@@ -69,6 +69,10 @@ abstract class DbCommand(name: String, summary: String, io: CliIo) : CoreCommand
         return SnowflakeIdGenerator(appId)
     }
 
+    /** 人向けの表示で操作した人を番号で出すコマンド用。番号は --json でないときだけ引く。 */
+    protected fun <T> respond(db: CoreDb, serializer: KSerializer<T>, data: T, actors: Collection<Actor>, human: (T, ActorLabels) -> String) =
+        respond(serializer, data) { human(it, ActorLabels.lookup(db, actors)) }
+
     protected fun openOrCreateDb(): CoreDb {
         val parent = absoluteDbPath.parent
         if (parent != null && !Files.isDirectory(parent)) {
