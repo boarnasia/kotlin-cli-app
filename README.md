@@ -23,6 +23,10 @@ apps/cli/build/install/core-cli/bin/core-cli user list --actor S-000001
 apps/cli/build/install/core-cli/bin/core-cli item create --name ノート --price 300 --actor S-000001
 apps/cli/build/install/core-cli/bin/core-cli stock adjust I-000001 --delta 10 --reason 入荷 --actor S-000001
 apps/cli/build/install/core-cli/bin/core-cli item publish I-000001 --actor S-000001
+
+# 会員の代わりに注文し、完了する
+apps/cli/build/install/core-cli/bin/core-cli order place --user M-000001 --item I-000001:2 --actor S-000001
+apps/cli/build/install/core-cli/bin/core-cli order complete O-000001 --actor S-000001
 ```
 
 ## 決めごと
@@ -35,6 +39,8 @@ apps/cli/build/install/core-cli/bin/core-cli item publish I-000001 --actor S-000
 - 人向けの表示の時刻だけ JST。`--json` は UTC
 - 人向けの表示では、操作した人を番号で出す（「管理者 S-000001」）。`--json` の `createdBy`・`updatedBy` は内部 ID のまま
 - 商品と在庫は、権限を問わず有効な管理者なら見られる。登録・変更・公開・削除と在庫の調整は `item:write`
+- 注文の閲覧は `order:read`、会員の代わりの注文・代わりのキャンセルの申請・完了は `order:write`、キャンセルの承認と却下は `order:cancel-approve`
+- 注文の明細は `--item 商品:数` を繰り返す（`order place --user M-000001 --item I-000001:2 --item I-000002:1 --actor S-000001`）
 - 在庫を減らすときは負の数を渡す（`stock adjust I-000001 --delta -3 --reason 棚卸し`。`--delta=-3` も可）
 - 内部 ID を作るコマンド（`user create`・`staff bootstrap` など）は `CORE_APP_ID`（CLI は 3）が要る
 - パスワードは引数の値では受け取らない。`--password-stdin` で標準入力の 1 行目から読むか、端末で表示しない入力を 2 回求める
@@ -48,4 +54,5 @@ apps/cli/build/install/core-cli/bin/core-cli item publish I-000001 --actor S-000
 | `staff bootstrap` / `create` / `list` / `get` / `update` / `suspend` / `activate` / `set-password` / `authenticate` | 済み |
 | `item create` / `list` / `get` / `update` / `publish` / `unpublish` / `delete --yes` | 済み |
 | `stock show` / `adjust` / `history` | 済み |
-| `order` / `notice` / `seed` | これから（seed の順番は staff → user → item → order → notice） |
+| `order place` / `list` / `get` / `request-cancel` / `approve-cancel` / `reject-cancel --reason` / `complete` | 済み |
+| `notice` / `seed` | これから（seed の順番は staff → user → item → order → notice） |

@@ -17,6 +17,8 @@ kotlin-core-app の change `add-order` の実装（lib/core/order）が終わっ
 
 - [ ] 3.1 order list と order get の人向けの表示を足し、1 行の中身・明細・履歴・JST の時刻・操作した人の番号をテストで確かめる
 
+- [x] 3.2 人向けの stock history で注文を O- の番号で出すこと（core の `OrderNumbers` で引く）をテストで確かめる
+
 ## 4. 文書と動作の確認
 
 - [ ] 4.1 注文の data の形を `docs/json-contract.md` に、コマンドと 8 種類の権限を `README.md` に書く

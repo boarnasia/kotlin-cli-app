@@ -1,9 +1,6 @@
 package io.github.boarnasia.cli
 
-import io.github.boarnasia.core.db.Actor
-import io.github.boarnasia.core.db.CoreDb
 import io.github.boarnasia.core.db.id.SnowflakeIdGenerator
-import io.github.boarnasia.core.item.StockLedger
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -58,10 +55,11 @@ class ItemCommandsTest {
 
     private fun JsonObject.str(key: String) = this[key]!!.jsonPrimitive.content
 
-    /** core の StockLedger で、商品に注文の引当を作る。 */
+    /** 会員を作って注文し、商品に引当を作る。 */
     private fun reserve(itemId: String, quantity: Long) {
-        val db = CoreDb.openFile(dir.resolve("core.db"))
-        db.write { StockLedger(SnowflakeIdGenerator(1)).reserve(it, itemId.toLong(), quantity, 900, Actor.Member(500)) }
+        cli("user", "create", "--email", "buyer@example.com", "--name", "買う人", "--password-stdin", "--actor", "S-000001", env = env, stdin = "correct horse\n")
+            .exitCode shouldBe 0
+        run("order", "place", "--user", "M-000001", "--item", "$itemId:$quantity", "--actor", "S-000001").exitCode shouldBe 0
     }
 
     @Test

@@ -50,7 +50,7 @@ order list は --status・--user・--limit・--offset を受け取り、data に
 - **THEN** M-000001 の注文だけが新しい順に出る
 
 ### Requirement: キャンセルと完了のコマンド
-order request-cancel は --reason（省ける）を受け取り、受付済みの注文をキャンセル申請中にしなければならない（MUST）。order approve-cancel はキャンセル申請中の注文をキャンセル済みにして引当を戻し、order reject-cancel は --reason（必須）を受け取って受付済みに戻し、order complete は受付済みの注文を完了にして出荷しなければならない（MUST）。どれも変えた注文を data に出す。許されない遷移は CONFLICT（4）、理由の誤りは VALIDATION（5）とする。request-cancel と complete は order:write、approve-cancel と reject-cancel は order:cancel-approve が要る。
+order request-cancel は --reason（省ける）を受け取り、受付済みの注文をキャンセル申請中にしなければならない（MUST）。order approve-cancel はキャンセル申請中の注文をキャンセル済みにして引当を戻し、order reject-cancel は --reason（必須）を受け取って受付済みに戻し、order complete は受付済みの注文を完了にして出荷しなければならない（MUST）。どれも変えた注文を data に出す。許されない遷移は CONFLICT（4）、理由の誤りは VALIDATION（5）とする。request-cancel と complete は order:write、approve-cancel と reject-cancel は order:cancel-approve が要る。履歴の内部 ID を作るため、どれも CORE_APP_ID が要る。
 
 #### Scenario: 申請して承認する
 - **WHEN** order request-cancel O-000001 --reason 間違えた の後に order approve-cancel O-000001 を実行する

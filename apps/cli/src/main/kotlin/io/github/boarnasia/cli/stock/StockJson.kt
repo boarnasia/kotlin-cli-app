@@ -53,14 +53,14 @@ data class MovementJson(
     val createdAt: String,
     val createdBy: ActorJson,
 ) {
-    /** 履歴の 1 行。 */
-    fun row(labels: ActorLabels): String = listOfNotNull(
+    /** 履歴の 1 行。注文は [orderNumbers]（内部 ID → O- の番号）で出し、引けなければ内部 ID で出す。 */
+    fun row(labels: ActorLabels, orderNumbers: Map<String, String> = emptyMap()): String = listOfNotNull(
         jst(createdAt),
         kindLabel(kind),
         "在庫数 ${signed(onHandDelta)}→$onHandAfter",
         "引当 ${signed(reservedDelta)}→$reservedAfter",
         reason,
-        orderId?.let { "注文 $it" },
+        orderId?.let { "注文 ${orderNumbers[it] ?: it}" },
         labels.of(createdBy),
     ).joinToString("  ")
 

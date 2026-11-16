@@ -20,6 +20,7 @@
 ### Modified Capabilities
 
 - `cli-staff-commands`: 管理者の data の permissions を 8 種類の決めた順にする
+- `cli-stock-commands`: 人向けの stock history で、注文を O- の番号で出す（--json の orderId は内部 ID のまま）
 
 ## Impact
 

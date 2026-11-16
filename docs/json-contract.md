@@ -237,7 +237,7 @@ data は商品 1 つ（上の形）。
 
 - `kind` は `adjust`（手動の調整、在庫数だけ）・`reserve`（注文の引当、引当だけ +）・`release`（キャンセルの承認による戻し、引当だけ −）・`ship`（注文の完了による出荷、在庫数と引当を同じ数だけ −）のどれか
 - `onHandAfter`・`reservedAfter` は変動した後の在庫数と引当
-- `reason` は調整の理由（調整では必ずある）。`orderId` は引当・戻し・出荷のときの注文の内部 ID の文字列で、調整では `null`
+- `reason` は調整の理由（調整では必ずある）。`orderId` は引当・戻し・出荷のときの注文の内部 ID の文字列で、調整では `null`。人向けの表示では注文を O- の番号で出す
 
 ### stock adjust
 
@@ -252,4 +252,54 @@ data は商品 1 つ（上の形）。
 
 ```json
 {"items": [ /* 在庫の変動、新しい順 */ ], "total": 2, "limit": 50, "offset": 0}
+```
+
+### 注文（order のコマンドが返す注文の形）
+
+```json
+{
+  "id": "115950000000000000",
+  "displayNumber": "O-000001",
+  "publicId": "3f2b8c1e-5a4d-4e6f-9b7a-1c2d3e4f5a6b",
+  "member": {"id": "115580000000000000", "displayNumber": "M-000001"},
+  "status": "accepted",
+  "total": 1800,
+  "lines": [
+    {"lineNo": 1, "itemId": "115900000000000000", "itemDisplayNumber": "I-000001", "name": "ノート", "unitPrice": 300, "quantity": 2, "subtotal": 600},
+    {"lineNo": 2, "itemId": "115900000000000001", "itemDisplayNumber": "I-000002", "name": "ペン", "unitPrice": 1200, "quantity": 1, "subtotal": 1200}
+  ],
+  "placedAt": "2026-11-17T03:00:00.000Z",
+  "completedAt": null,
+  "cancelledAt": null,
+  "events": [
+    {"kind": "placed", "fromStatus": null, "toStatus": "accepted", "reason": null, "createdAt": "2026-11-17T03:00:00.000Z", "createdBy": {"type": "staff", "id": "115575700000000000"}}
+  ],
+  "createdAt": "2026-11-17T03:00:00.000Z",
+  "updatedAt": "2026-11-17T03:00:00.000Z",
+  "createdBy": {"type": "staff", "id": "115575700000000000"},
+  "updatedBy": {"type": "staff", "id": "115575700000000000"}
+}
+```
+
+- `status` は `accepted`（受付済み）・`cancel_requested`（キャンセル申請中）・`cancelled`（キャンセル済み）・`completed`（完了）のどれか
+- `total` は円の整数で、明細の `subtotal` の合計。`subtotal` は `unitPrice × quantity`
+- 明細の `name` と `unitPrice` は注文した時点の値。後で商品が変わっても変わらない
+- `completedAt` は完了だけ、`cancelledAt` はキャンセル済みだけが値を持つ
+- `events` は作成からの履歴で古い順。`kind` は `placed`・`cancel_requested`・`cancel_rejected`・`cancel_approved`・`completed` のどれか。`fromStatus` は作成では `null`。`reason` はキャンセルの申請（省ける）と却下（必ずある）の理由
+- 会員が mypage から自分で注文したときは、`createdBy` などの `type` が `member` になる
+
+### order place / get / request-cancel / approve-cancel / reject-cancel / complete
+
+data は注文 1 つ（上の形）。
+
+- `order place` の `--item` は「商品:数」（例 `I-000001:2`）を繰り返す。形が違えば `USAGE`（2）。数の範囲（1〜99）の外・明細が 21 行以上・同じ商品の重複は `VALIDATION`（5）
+- 在庫不足・注文できない商品（非公開・削除済み・いない）・停止中の会員は `CONFLICT`（4）。いない会員は `NOT_FOUND`（3）
+- 許されない遷移（例 キャンセル申請中の `complete`）は `CONFLICT`（4）。`reject-cancel` は `--reason` が無ければ `USAGE`（2）、空なら `VALIDATION`（5）
+- 注文の指定は内部 ID・`O-` の番号・公開 ID。ほかの種類の番号は `VALIDATION`（5）
+- `order get` 以外は内部 ID を作るので `CORE_APP_ID` が要る
+
+### order list
+
+```json
+{"items": [ /* 注文、受け付けた時刻の新しい順 */ ], "total": 3, "limit": 50, "offset": 0}
 ```

@@ -12,6 +12,7 @@ import io.github.boarnasia.cli.NO_ID_GENERATOR
 import io.github.boarnasia.cli.StaffActorCommand
 import io.github.boarnasia.cli.item.itemRef
 import io.github.boarnasia.core.account.PageRange
+import io.github.boarnasia.core.db.OrderNumbers
 import io.github.boarnasia.core.item.MovementQuery
 import io.github.boarnasia.core.item.StockService
 
@@ -57,7 +58,8 @@ class StockHistoryCommand(io: CliIo) : StaffActorCommand("history", "在庫の�
         val page = StockService(db, NO_ID_GENERATOR).history(ref, MovementQuery(limit = limit, offset = offset), actor(db))
         val data = MovementListJson(page.items.map(MovementJson::of), page.total, page.limit, page.offset)
         respond(db, MovementListJson.serializer(), data, page.items.map { it.createdBy }) { list, labels ->
-            val rows = list.items.joinToString("\n") { it.row(labels) }
+            val orderNumbers = OrderNumbers.of(db, page.items.mapNotNull { it.orderId }).entries.associate { (id, n) -> id.toString() to n.toString() }
+            val rows = list.items.joinToString("\n") { it.row(labels, orderNumbers) }
             val range = if (list.items.isEmpty()) "" else "（${list.offset + 1}〜${list.offset + list.items.size} 件目）"
             listOf(rows, "全 ${list.total} 件$range").filter { it.isNotEmpty() }.joinToString("\n")
         }

@@ -1,9 +1,5 @@
 package io.github.boarnasia.cli
 
-import io.github.boarnasia.core.db.Actor
-import io.github.boarnasia.core.db.CoreDb
-import io.github.boarnasia.core.db.id.SnowflakeIdGenerator
-import io.github.boarnasia.core.item.StockLedger
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -44,11 +40,12 @@ class StockCommandsTest {
 
     private fun CliResult.errorCode() = json["error"]!!.jsonObject["code"]!!.jsonPrimitive.content
 
+    /** 商品を公開し、会員を作って注文して、引当を作る。 */
     private fun reserve(quantity: Long) {
         run("item", "publish", "I-000001", "--actor", "S-000001").exitCode shouldBe 0
-        CoreDb.openFile(dir.resolve("core.db")).write {
-            StockLedger(SnowflakeIdGenerator(1)).reserve(it, itemId.toLong(), quantity, 900, Actor.Member(500))
-        }
+        cli("user", "create", "--email", "buyer@example.com", "--name", "買う人", "--password-stdin", "--actor", "S-000001", env = env, stdin = "correct horse\n")
+            .exitCode shouldBe 0
+        run("order", "place", "--user", "M-000001", "--item", "I-000001:$quantity", "--actor", "S-000001").exitCode shouldBe 0
     }
 
     @Test
@@ -137,7 +134,7 @@ class StockCommandsTest {
         show shouldContain "注文可能数:  5"
 
         val lines = run("stock", "history", "I-000001", "--actor", "S-000001").out.trim().lines()
-        lines[0] shouldMatch Regex("""\d{4}-\d\d-\d\d \d\d:\d\d:\d\d JST {2}引当 {2}在庫数 0→8 {2}引当 \+3→3 {2}注文 900 {2}会員本人 500""")
+        lines[0] shouldMatch Regex("""\d{4}-\d\d-\d\d \d\d:\d\d:\d\d JST {2}引当 {2}在庫数 0→8 {2}引当 \+3→3 {2}注文 O-000001 {2}管理者 S-000001""")
         lines[1] shouldMatch Regex(""".* JST {2}調整 {2}在庫数 -2→8 {2}引当 0→0 {2}破損 {2}管理者 S-000001""")
         lines[2] shouldContain "調整  在庫数 +10→10  引当 0→0  入荷  管理者 S-000001"
         lines.last() shouldBe "全 3 件（1〜3 件目）"
