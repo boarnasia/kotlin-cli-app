@@ -303,3 +303,45 @@ data は注文 1 つ（上の形）。
 ```json
 {"items": [ /* 注文、受け付けた時刻の新しい順 */ ], "total": 3, "limit": 50, "offset": 0}
 ```
+
+### お知らせ（notice のコマンドが返す形）
+
+```json
+{
+  "id": "115960000000000000",
+  "displayNumber": "N-000001",
+  "title": "お休み",
+  "body": "年末年始",
+  "status": "scheduled",
+  "publishStartAt": "2026-12-01T00:00:00.000Z",
+  "publishEndAt": null,
+  "deletedAt": null,
+  "createdAt": "2026-11-17T03:00:00.000Z",
+  "updatedAt": "2026-11-17T03:00:00.000Z",
+  "createdBy": {"type": "staff", "id": "115575700000000000"},
+  "updatedBy": {"type": "staff", "id": "115575700000000000"}
+}
+```
+
+- `status` は実行時刻の日時から計算した `draft`・`scheduled`・`active`・`ended`。削除は `deletedAt` で判定し、削除後も日時から計算した状態を出す
+- 公開 ID は持たない。公開終了が無ければ期限なし。公開開始ちょうどから公開終了の直前まで公開中
+- `notice create / get / update / end / delete` の data は上のお知らせ 1 件
+- `notice update` は変更項目が無ければ `VALIDATION`（5）。`--clear-start`・`--clear-end` と同じ項目の設定を同時に指定すると `USAGE`（2）
+- `notice end` は公開中以外で `CONFLICT`（4）。`notice delete` は `--yes` が無ければ `USAGE`（2）。削除済みへの書き込みは `CONFLICT`（4）
+- 日時の形の誤りは `USAGE`（2）、公開期間の規則違反は `VALIDATION`（5）。書き込みの `notice:write` が無ければ `FORBIDDEN`（7）
+
+### notice list
+
+```json
+{"items": [], "total": 0, "limit": 50, "offset": 0}
+```
+
+番号の新しい順。`--status draft|scheduled|active|ended|deleted` で絞る。省いたら削除済みを除く。
+
+### notice visible
+
+```json
+{"at": "2026-12-01T00:00:00.000Z", "items": []}
+```
+
+`--at`（省いたら今）に公開中で削除されていないお知らせを公開開始の新しい順で返す。`items` は上のお知らせの形で、`status` は実行時刻で計算した値なので、`at` が未来なら `scheduled` のこともある。契約の追加なので `contractVersion` は 1 のまま。

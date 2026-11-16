@@ -55,4 +55,18 @@ apps/cli/build/install/core-cli/bin/core-cli order complete O-000001 --actor S-0
 | `item create` / `list` / `get` / `update` / `publish` / `unpublish` / `delete --yes` | 済み |
 | `stock show` / `adjust` / `history` | 済み |
 | `order place` / `list` / `get` / `request-cancel` / `approve-cancel` / `reject-cancel --reason` / `complete` | 済み |
-| `notice` / `seed` | これから（seed の順番は staff → user → item → order → notice） |
+| `notice create` / `list` / `get` / `update` / `end` / `delete --yes` / `visible` | 済み |
+| `seed` | これから（seed の順番は staff → user → item → order → notice） |
+
+## お知らせ
+
+```sh
+apps/cli/build/install/core-cli/bin/core-cli notice create --title お休み --body 年末年始 --actor S-000001
+apps/cli/build/install/core-cli/bin/core-cli notice update N-000001 --start 2026-12-01T09:00 --end 2026-12-31T18:00 --actor S-000001
+apps/cli/build/install/core-cli/bin/core-cli notice visible --at 2026-12-01T09:00 --actor S-000001 --json
+apps/cli/build/install/core-cli/bin/core-cli notice list --status scheduled --actor S-000001
+```
+
+日時は ISO-8601。時差が無ければ JST として読み、日付だけは受け付けない。公開終了は公開開始より後かつ設定時点より後にする。`--clear-start`・`--clear-end` で日時を消す。同じ項目の設定と消去は同時に指定できない。
+
+公開中は題名・本文・公開終了を変更できる。`end` は公開中だけを今すぐ終了する。`delete --yes` は公開中を含めどの状態からも論理削除する。閲覧は有効な管理者なら許し、書き込みは `notice:write` が要る。
