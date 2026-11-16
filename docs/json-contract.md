@@ -134,7 +134,7 @@ data は会員 1 人（上の形）。
   "email": "admin@example.com",
   "name": "最初の管理者",
   "status": "active",
-  "permissions": ["member:read", "member:write", "order:read", "order:cancel-approve", "item:write", "notice:write", "staff:admin"],
+  "permissions": ["member:read", "member:write", "order:read", "order:write", "order:cancel-approve", "item:write", "notice:write", "staff:admin"],
   "suspendedAt": null,
   "suspensionReason": null,
   "createdAt": "2026-11-17T03:00:00.000Z",
@@ -145,8 +145,8 @@ data は会員 1 人（上の形）。
 ```
 
 - 管理者は公開 ID を持たないので `publicId` は無い。パスワードとそのハッシュは出さない
-- `permissions` は持つ権限だけを、上の例の順（7 種類の決めた順）に並べた配列。権限が無ければ `[]`
-- `member:write` は `member:read` を、`order:cancel-approve` は `order:read` を含む（配列には付けた権限だけが出る）
+- `permissions` は持つ権限だけを、上の例の順（8 種類の決めた順）に並べた配列。権限が無ければ `[]`
+- `member:write` は `member:read` を、`order:write` と `order:cancel-approve` は `order:read` を含む（配列には付けた権限だけが出る）
 - `status`・`suspendedAt`・`suspensionReason`・`createdBy`・`updatedBy` は会員と同じ。`staff bootstrap` で作った管理者は、登録した人が自分自身
 
 ### staff bootstrap / create / get / update / suspend / activate / set-password

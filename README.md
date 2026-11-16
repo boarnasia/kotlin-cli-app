@@ -31,7 +31,7 @@ apps/cli/build/install/core-cli/bin/core-cli item publish I-000001 --actor S-000
 - DB のパスは `--db` か環境変数 `CORE_DB_PATH`
 - カレントディレクトリの `.env` を読む。同じ名前の環境変数があればそちらが優先される
 - `db`・`user authenticate`・`staff authenticate`・`staff bootstrap` を除く全てのコマンドは、閲覧を含めて `--actor`（操作した管理者の内部 ID か S- の番号）を必須で取る。いて有効で権限を持つかは core のユースケースが確かめ、だめなら終了コード 7（FORBIDDEN）
-- 権限は 7 種類（`member:read`・`member:write`・`order:read`・`order:cancel-approve`・`item:write`・`notice:write`・`staff:admin`）。最初の管理者は `staff bootstrap` で作る
+- 権限は 8 種類（`member:read`・`member:write`・`order:read`・`order:write`・`order:cancel-approve`・`item:write`・`notice:write`・`staff:admin`）。最初の管理者は `staff bootstrap` で作る
 - 人向けの表示の時刻だけ JST。`--json` は UTC
 - 人向けの表示では、操作した人を番号で出す（「管理者 S-000001」）。`--json` の `createdBy`・`updatedBy` は内部 ID のまま
 - 商品と在庫は、権限を問わず有効な管理者なら見られる。登録・変更・公開・削除と在庫の調整は `item:write`

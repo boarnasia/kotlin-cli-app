@@ -11,7 +11,7 @@ kotlin-core-app の change `add-order` の実装（lib/core/order）が終わっ
 
 ## 2. staff の権限
 
-- [ ] 2.1 staff bootstrap の permissions が 8 種類を決めた順に並ぶこと、--permission order:write を受け付けることをテストで確かめる
+- [x] 2.1 staff bootstrap の permissions が 8 種類を決めた順に並ぶこと、--permission order:write を受け付けることをテストで確かめる
 
 ## 3. 人向けの表示
 

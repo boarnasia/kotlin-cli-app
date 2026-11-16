@@ -23,7 +23,7 @@ class StaffCommandsTest {
     private lateinit var env: Map<String, String>
 
     private val allPermissions = listOf(
-        "member:read", "member:write", "order:read", "order:cancel-approve", "item:write", "notice:write", "staff:admin",
+        "member:read", "member:write", "order:read", "order:write", "order:cancel-approve", "item:write", "notice:write", "staff:admin",
     )
 
     @BeforeEach
@@ -49,7 +49,7 @@ class StaffCommandsTest {
     private fun JsonObject.permissions() = this["permissions"]!!.jsonArray.map { it.jsonPrimitive.content }
 
     @Test
-    fun `staff bootstrap は空の DB で 7 種類の権限を持つ S-000001 を作り、2 回目は CONFLICT（4）`() {
+    fun `staff bootstrap は空の DB で 8 種類の権限を持つ S-000001 を作り、2 回目は CONFLICT（4）`() {
         val first = bootstrap()
 
         first.exitCode shouldBe 0
@@ -144,6 +144,14 @@ class StaffCommandsTest {
             .let { it.exitCode shouldBe 5; it.errorCode() shouldBe "VALIDATION" }
         run("staff", "update", "S-000002", "--actor", "S-000001", "--json").exitCode shouldBe 5
         run("staff", "update", "S-000002", "--grant", "nope", "--actor", "S-000001", "--json").exitCode shouldBe 2
+    }
+
+    @Test
+    fun `--permission order_write を受け付け、決めた順に並べる`() {
+        bootstrap()
+
+        create("ops@example.com", "order:cancel-approve", "order:write", "order:read").data.permissions() shouldBe
+            listOf("order:read", "order:write", "order:cancel-approve")
     }
 
     @Test
