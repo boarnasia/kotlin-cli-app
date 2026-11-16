@@ -1,11 +1,13 @@
 package io.github.boarnasia.cli
 
+import io.github.boarnasia.core.db.CoreDb
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldMatch
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.TimeZone
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
@@ -106,6 +108,29 @@ class DbCommandsTest {
         done.exitCode shouldBe 0
         val doneData = done.json["data"]!!.jsonObject
         doneData["appliedCount"]!!.jsonPrimitive.int shouldBe doneData["applied"]!!.jsonArray.size
+    }
+
+    @Test
+    fun `適用の時刻は JVM のタイムゾーンによらず、--json は UTC、人向けの表示は JST で出す`() {
+        cli("db", "migrate", "--db", db).exitCode shouldBe 0
+        // SQLite が installed_on に書く形（ゾーンの無い UTC）の固定の値にする
+        CoreDb.openFile(dir.resolve("core.db")).write {
+            it.execute("UPDATE flyway_schema_history SET installed_on = '2026-11-16 19:03:08.721'")
+        }
+        val original = TimeZone.getDefault()
+        try {
+            listOf("UTC", "Asia/Tokyo", "America/Los_Angeles").forEach { zone ->
+                TimeZone.setDefault(TimeZone.getTimeZone(zone))
+
+                val json = cli("db", "status", "--db", db, "--json").json["data"]!!.jsonObject["migrations"]!!.jsonArray
+                json.map { it.jsonObject["installedAt"]!!.jsonPrimitive.content }.toSet() shouldBe setOf("2026-11-16T19:03:08.721Z")
+                val rows = cli("db", "status", "--db", db).out.lines().filter { it.trimStart().firstOrNull()?.isDigit() == true }
+                rows.size shouldBe json.size
+                rows.forEach { it shouldContain "2026-11-17 04:03:08 JST" }
+            }
+        } finally {
+            TimeZone.setDefault(original)
+        }
     }
 
     @Test
