@@ -34,17 +34,6 @@ CLI が内部 ID を作るときは、.env か環境変数の CORE_APP_ID で受
 - **WHEN** CORE_APP_ID=3 の設定で、内部 ID を作る登録のコマンドを実行する
 - **THEN** 作られた内部 ID の app-id は 3 になる
 
-### Requirement: 書き込みのコマンドは操作した管理者を受け取る
-core.db のデータを書き換えるコマンドは、操作した管理者の ID を --actor で受け取らなければならない（MUST）。--actor が無ければ、書き込まずに失敗させなければならない（MUST）。db のコマンド（migrate・status・reset）は、管理者の表ができる前にも実行するので、--actor を取ってはならない（MUST NOT）。
-
-#### Scenario: --actor の無い書き込み
-- **WHEN** --actor を付けずに、データを書き換えるコマンドを実行する
-- **THEN** 何も書き込まれず、引数の誤りとして失敗する
-
-#### Scenario: 空の DB を作る
-- **WHEN** 管理者がまだ 1 人もいない状態で db migrate を実行する
-- **THEN** --actor 無しで実行できる
-
 ### Requirement: 人向けの出力は日本時間で表示し、エラーは標準エラーに出す
 --json を付けないときは、人が読む形で標準出力に出さなければならない（MUST）。時刻は日本時間（JST）で表示しなければならない（MUST）。失敗したときは、理由を標準エラーに出し、標準出力には何も出してはならない（MUST NOT）。
 
@@ -55,3 +44,22 @@ core.db のデータを書き換えるコマンドは、操作した管理者の
 #### Scenario: 人向けの表示で失敗する
 - **WHEN** --json を付けずに、存在しない core.db を指定して db status を実行する
 - **THEN** 標準出力は空で、標準エラーに core.db が無いことが出る
+
+### Requirement: 管理者として操作するコマンドは --actor を受け取る
+db のコマンド・user authenticate・staff authenticate・staff bootstrap を除く全てのコマンドは、閲覧を含めて、操作した管理者を --actor で必須で受け取らなければならない（MUST）。--actor は管理者の内部 ID（正の整数）か表示用の番号（S-）を受け付け、どの形でもなければ USAGE（2）で失敗させなければならない（MUST）。その管理者がいない・停止中・要る権限が無いときは、何もせずに FORBIDDEN（7）で失敗させなければならない（MUST）。
+
+#### Scenario: 番号で渡す
+- **WHEN** user list に --actor S-000001 を付けて実行する
+- **THEN** S-000001 の管理者として実行される
+
+#### Scenario: 停止中の管理者を渡す
+- **WHEN** 停止中の管理者を --actor に渡して user get を実行する
+- **THEN** 終了コード 7 で失敗し、--json なら error.code は FORBIDDEN になる
+
+#### Scenario: 会員の番号を渡す
+- **WHEN** --actor に M-000001 を渡す
+- **THEN** 終了コード 2 で失敗する
+
+#### Scenario: 空の DB を作る
+- **WHEN** 管理者がまだ 1 人もいない状態で db migrate を実行する
+- **THEN** --actor 無しで実行できる

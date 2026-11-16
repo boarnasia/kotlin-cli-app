@@ -24,17 +24,6 @@
 - **WHEN** user create・user set-password・user authenticate を --json で実行する
 - **THEN** 出力にパスワードもハッシュも含まれない
 
-### Requirement: 書き込みのコマンドは --actor に内部 ID を取る
-user create・update・suspend・activate・set-password は --actor に管理者の内部 ID（正の整数）を必須で取らなければならない（MUST）。無いときや正の整数でないときは、書き込まずに USAGE（終了コード 2）で失敗させなければならない（MUST）。user list・get・authenticate は --actor を取ってはならない（MUST NOT）。
-
-#### Scenario: --actor が無い
-- **WHEN** user create を --actor 無しで実行する
-- **THEN** 終了コード 2 で失敗し、会員は作られない
-
-#### Scenario: --actor が番号の形
-- **WHEN** user suspend に --actor S-000001 を付けて実行する
-- **THEN** 終了コード 2 で失敗する
-
 ### Requirement: 会員は 3 種類の ID のどれでも指定できる
 会員を 1 人指定するコマンド（get・update・suspend・activate・set-password）は、位置引数で内部 ID・表示用の番号・公開 ID のどれでも受け付けなければならない（MUST）。どの形でもなければ USAGE（2）、会員以外の種類の番号なら VALIDATION（5）、該当する会員がいなければ NOT_FOUND（3）で失敗させなければならない（MUST）。
 
@@ -110,3 +99,18 @@ user authenticate は --email とパスワードを受け取り、--actor を取
 #### Scenario: 一覧を人向けに出す
 - **WHEN** user list を --json 無しで実行する
 - **THEN** 1 人 1 行で番号・状態・メールアドレス・名前が並び、最後に全件数が出る
+
+### Requirement: user のコマンドは --actor で操作した管理者を受け取る
+user create・list・get・update・suspend・activate・set-password は、--actor に管理者の内部 ID か S- の番号を必須で取らなければならない（MUST）。無いときやどの形でもないときは USAGE（2）、いない・停止中・権限が無い管理者は FORBIDDEN（7）で、何もせずに失敗させなければならない（MUST）。要る権限は、list・get が member:read、それ以外が member:write とする（core-authorization）。user authenticate は --actor を取ってはならない（MUST NOT）。
+
+#### Scenario: --actor が無い
+- **WHEN** user create を --actor 無しで実行する
+- **THEN** 終了コード 2 で失敗し、会員は作られない
+
+#### Scenario: 閲覧の権限だけで停止する
+- **WHEN** member:read だけを持つ管理者を --actor に渡して user suspend を実行する
+- **THEN** 終了コード 7 で失敗し、会員は変わらない
+
+#### Scenario: いない管理者
+- **WHEN** どの管理者にも当たらない S-999999 を --actor に渡して user get を実行する
+- **THEN** 終了コード 7 で、error.code は FORBIDDEN になる
