@@ -29,7 +29,7 @@ user のコマンドで、書き込みの基底（`WriteCommand`、`--actor` は
 
 ### FORBIDDEN を終了コード 7 にする
 
-`ErrorCode` に `FORBIDDEN(7)` を足し、core の `CoreErrorKind.FORBIDDEN` を対応させる。既存のコードと終了コードは変えないので、contractVersion は 1 のまま（項目の追加）。
+`ErrorCode` に `FORBIDDEN(7)` を足し、core の `CoreErrorKind.FORBIDDEN` を対応させる。既存のコードと終了コードは変えないので、contractVersion は 1 のまま（項目の追加）。あわせて、error.code と終了コードは今後増えることがあり、呼び出し側は知らないコードを失敗として扱う、と cli-json-contract と `docs/json-contract.md` に書く。
 
 ### `staff bootstrap`
 
@@ -37,5 +37,5 @@ user のコマンドで、書き込みの基底（`WriteCommand`、`--actor` は
 
 ## Risks / Trade-offs
 
-- [閲覧にも `--actor` が要るので、dashboard の呼び方が変わる（BREAKING）] → dashboard 用に読む権限だけを持つ管理者を作り、その番号を渡す。kotlin-core-app の design.md の Open Questions 2
+- [閲覧にも `--actor` が要るので、dashboard の呼び方が変わる（BREAKING）] → dashboard 用に読む権限だけを持つ管理者を作り、その番号を渡す。kotlin-core-app の design.md の Open Questions 2 で決まった
 - [S- の番号を引き直してからユースケースが確かめるまでに、その管理者が停止されうる] → ユースケースがトランザクションの中で確かめ直すので、停止された管理者の操作は通らない

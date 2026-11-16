@@ -1,6 +1,6 @@
 # Tasks
 
-kotlin-core-app の change `add-staff` の実装（lib/core/staff と UserService の修正）が終わってから始める。kotlin-core-app の design.md の Open Questions は推奨案で書いている。
+kotlin-core-app の change `add-staff` の実装（lib/core/staff と UserService の修正）が終わってから始める。kotlin-core-app の design.md の Open Questions は全て推奨案で決まった。
 
 ## 1. 共通の仕組み
 
@@ -23,7 +23,7 @@ kotlin-core-app の change `add-staff` の実装（lib/core/staff と UserServic
 
 ## 4. 文書と動作の確認
 
-- [ ] 4.1 管理者の data の形・FORBIDDEN（7）・閲覧の `--actor` を `docs/json-contract.md` と `README.md` に書く
+- [ ] 4.1 管理者の data の形・FORBIDDEN（7）・閲覧の `--actor`・error.code と終了コードが増えうること（知らないコードは失敗として扱う）を `docs/json-contract.md` と `README.md` に書く
 - [ ] 4.2 `installDist` した core-cli で、db reset → staff bootstrap → staff create → user create → 権限の無い操作（終了コード 7）→ staff suspend → 停止中の管理者の --actor（終了コード 7）を順に実行し、出力と終了コードが仕様どおりであることを確かめる
 
 ## Workflow follow-up
