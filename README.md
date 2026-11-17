@@ -74,12 +74,20 @@ apps/cli/build/install/core-cli/bin/core-cli notice list --status scheduled --ac
 ## seed（決まった内容の投入）
 
 ```sh
+# 新しいディレクトリで始めるとき
+cp .env.example .env
+apps/cli/build/install/core-cli/bin/core-cli db migrate
+apps/cli/build/install/core-cli/bin/core-cli seed all
+
+# やり直すとき
 apps/cli/build/install/core-cli/bin/core-cli db reset --yes
 apps/cli/build/install/core-cli/bin/core-cli seed all
+
 # 別の定義ファイルで 1 つのモジュールだけ投入する
 apps/cli/build/install/core-cli/bin/core-cli seed item --dir ./my-seed --actor S-000001
 ```
 
+- `db reset --yes` は既にある core.db を作り直すコマンドで、core.db が無いと終了コード 3（DB_NOT_FOUND）になる。新しいディレクトリでは先に `db migrate` を実行する
 - 既定の定義は CLI に同梱している（`apps/cli/src/main/resources/seed/`）。管理者 7 人・会員 10 人・商品 8 件・注文 12 件・お知らせ 6 件で、注文とお知らせは各状態を含む
 - `--dir` を付けると、そのディレクトリの `staff.json`・`user.json`・`item.json`・`order.json`・`notice.json` を読む（`seed all` は 5 つとも要る）
 - データが 1 件でもあるモジュールには投入しない（終了コード 4）。やり直すときは `db reset --yes` で作り直す
