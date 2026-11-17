@@ -327,7 +327,7 @@ data は注文 1 つ（上の形）。
 - 公開 ID は持たない。公開終了が無ければ期限なし。公開開始ちょうどから公開終了の直前まで公開中
 - `notice create / get / update / end / delete` の data は上のお知らせ 1 件
 - `notice update` は変更項目が無ければ `VALIDATION`（5）。`--clear-start`・`--clear-end` と同じ項目の設定を同時に指定すると `USAGE`（2）
-- `notice end` は公開中以外で `CONFLICT`（4）。`notice delete` は `--yes` が無ければ `USAGE`（2）。削除済みへの書き込みは `CONFLICT`（4）
+- `notice end` は公開中以外で `CONFLICT`（4）。開始と同じミリ秒の即時終了は成功し、終了扱いとなって visible に出ない。登録・変更の終了＝開始は `VALIDATION`（5）。`notice delete` は `--yes` が無ければ `USAGE`（2）。削除済みへの書き込みは `CONFLICT`（4）
 - 日時の形の誤りは `USAGE`（2）、公開期間の規則違反は `VALIDATION`（5）。書き込みの `notice:write` が無ければ `FORBIDDEN`（7）
 
 ### notice list

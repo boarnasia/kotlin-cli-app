@@ -73,7 +73,10 @@ class NoticeCommandsTest {
         run("create", "--title", "題名", "--body", "本文", "--end", "2099-12-01T09:00").exitCode shouldBe 5
         run("create", "--title", "題名", "--body", "本文", "--start", "2099-12-02T09:00", "--end", "2099-12-01T09:00").exitCode shouldBe 5
         run("create", "--title", "題名", "--body", "本文", "--start", "2000-01-01T09:00", "--end", "2001-01-01T09:00").exitCode shouldBe 5
+        run("create", "--title", "題名", "--body", "本文", "--start", "2099-12-01T09:00", "--end", "2099-12-01T09:00").exitCode shouldBe 5
         create()
+        run("update", "N-000001", "--start", "2099-12-01T09:00", "--end", "2099-12-01T09:00").exitCode shouldBe 5
+        run("get", "N-000001").data.str("status") shouldBe "draft"
         run("end", "N-000001").exitCode shouldBe 4
         run("update", "N-000001", "--start", "2000-01-01T09:00").data.str("status") shouldBe "active"
         run("update", "N-000001", "--clear-start").exitCode shouldBe 4

@@ -21,7 +21,7 @@
 - **THEN** publishStartAt は "2026-12-01T00:00:00.000Z" になる
 
 ### Requirement: お知らせを書き換えるコマンド
-notice create は --title・--body・--start（省ける）・--end（省ける）を、notice update は --title・--body・--start・--end・--clear-start・--clear-end のうち 1 つ以上を受け取らなければならない（MUST）（無ければ VALIDATION（5））。notice end は公開中を今すぐ終了し、notice delete は --yes を必須として論理削除する（--yes が無ければ USAGE（2））。どれも notice:write が要る（無ければ FORBIDDEN（7））。許されない操作は CONFLICT（4）、日時の規則の誤りは VALIDATION（5）とする。
+notice create は --title・--body・--start（省ける）・--end（省ける）を、notice update は --title・--body・--start・--end・--clear-start・--clear-end のうち 1 つ以上を受け取らなければならない（MUST）（無ければ VALIDATION（5））。notice end は公開中を今すぐ終了し（開始と同じミリ秒でも成功して終了扱いとなり visible に出ない）、notice delete は --yes を必須として論理削除する（--yes が無ければ USAGE（2））。どれも notice:write が要る（無ければ FORBIDDEN（7））。許されない操作は CONFLICT（4）、日時の規則の誤り（登録・変更で終了＝開始も含む）は VALIDATION（5）とする。
 
 #### Scenario: 下書きを終了する
 - **WHEN** 下書きのお知らせに notice end を実行する
