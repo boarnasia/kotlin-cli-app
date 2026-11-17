@@ -54,7 +54,7 @@ CLI が内部 ID を作るときは、.env か環境変数の CORE_APP_ID で受
 - **THEN** 登録の行に「管理者 <その内部 ID>」が出る
 
 ### Requirement: 管理者として操作するコマンドは --actor を受け取る
-db のコマンド・user authenticate・staff authenticate・staff bootstrap を除く全てのコマンドは、閲覧を含めて、操作した管理者を --actor で必須で受け取らなければならない（MUST）。--actor は管理者の内部 ID（正の整数）か表示用の番号（S-）を受け付け、どの形でもなければ USAGE（2）で失敗させなければならない（MUST）。その管理者がいない・停止中・要る権限が無いときは、何もせずに FORBIDDEN（7）で失敗させなければならない（MUST）。
+db のコマンド・user authenticate・staff authenticate・staff bootstrap・seed staff・seed all を除く全てのコマンドは、閲覧を含めて、操作した管理者を --actor で必須で受け取らなければならない（MUST）。--actor は管理者の内部 ID（正の整数）か表示用の番号（S-）を受け付け、どの形でもなければ USAGE（2）で失敗させなければならない（MUST）。その管理者がいない・停止中・要る権限が無いときは、何もせずに FORBIDDEN（7）で失敗させなければならない（MUST）。
 
 #### Scenario: 番号で渡す
 - **WHEN** user list に --actor S-000001 を付けて実行する
@@ -71,3 +71,7 @@ db のコマンド・user authenticate・staff authenticate・staff bootstrap �
 #### Scenario: 空の DB を作る
 - **WHEN** 管理者がまだ 1 人もいない状態で db migrate を実行する
 - **THEN** --actor 無しで実行できる
+
+#### Scenario: 空の DB に seed all
+- **WHEN** 管理者がまだ 1 人もいない状態で seed all を実行する
+- **THEN** --actor 無しで実行でき、最初の管理者が作られる
