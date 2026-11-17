@@ -1,0 +1,12 @@
+{
+  "items": [
+    {"name": "ノート", "description": "A5 の方眼", "price": 300, "stock": 50, "status": "published"},
+    {"name": "ボールペン", "description": "黒 0.5mm", "price": 150, "stock": 40, "status": "published"},
+    {"name": "消しゴム", "price": 100, "stock": 30, "status": "published"},
+    {"name": "マグカップ", "description": "350ml", "price": 1200, "stock": 10, "status": "published"},
+    {"name": "トートバッグ", "price": 2500, "stock": 5, "status": "published"},
+    {"name": "卓上カレンダー", "description": "在庫切れの例", "price": 800, "status": "published"},
+    {"name": "試作の付箋", "description": "非公開の例", "price": 200, "stock": 20},
+    {"name": "旧型の定規", "description": "削除済みの例", "price": 250, "status": "deleted"}
+  ]
+}

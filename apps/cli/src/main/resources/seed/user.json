@@ -1,0 +1,14 @@
+{
+  "users": [
+    {"email": "member01@example.com", "name": "青木 一郎", "password": "demo-pass-101"},
+    {"email": "member02@example.com", "name": "石田 花子", "password": "demo-pass-102"},
+    {"email": "member03@example.com", "name": "上野 健", "password": "demo-pass-103"},
+    {"email": "member04@example.com", "name": "江藤 由美", "password": "demo-pass-104"},
+    {"email": "member05@example.com", "name": "大川 誠", "password": "demo-pass-105"},
+    {"email": "member06@example.com", "name": "加藤 さくら", "password": "demo-pass-106"},
+    {"email": "member07@example.com", "name": "木村 翔", "password": "demo-pass-107"},
+    {"email": "member08@example.com", "name": "工藤 美咲", "password": "demo-pass-108"},
+    {"email": "member09@example.com", "name": "小林 大輔", "password": "demo-pass-109"},
+    {"email": "member10@example.com", "name": "佐藤 葵", "password": "demo-pass-110", "status": "suspended", "suspendReason": "テスト用に停止"}
+  ]
+}

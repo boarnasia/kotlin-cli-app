@@ -46,7 +46,7 @@ dashboard が `core-cli ... --json` の標準出力を読む。ここに書い�
 
 ## --actor
 
-`db` のコマンド・`user authenticate`・`staff authenticate`・`staff bootstrap` を除く全てのコマンドは、閲覧を含めて `--actor` に操作した管理者を必須で取る。管理者の内部 ID か表示用の番号（例 `S-000001`）を渡す。
+`db` のコマンド・`user authenticate`・`staff authenticate`・`staff bootstrap`・`seed staff`・`seed all` を除く全てのコマンドは、閲覧を含めて `--actor` に操作した管理者を必須で取る。管理者の内部 ID か表示用の番号（例 `S-000001`）を渡す。
 
 - 無いとき、どちらの形でもないとき（`M-` の番号や UUID など）は `USAGE`（2）
 - いない・停止中・要る権限が無い管理者は `FORBIDDEN`（7）。対象がいるかどうかより先に確かめるので、権限が無ければ対象がいなくても `NOT_FOUND` にはならない
@@ -345,3 +345,22 @@ data は注文 1 つ（上の形）。
 ```
 
 `--at`（省いたら今）に公開中で削除されていないお知らせを公開開始の新しい順で返す。`items` は上のお知らせの形で、`status` は実行時刻で計算した値なので、`at` が未来なら `scheduled` のこともある。契約の追加なので `contractVersion` は 1 のまま。
+
+### seed all / staff / user / item / order / notice
+
+```json
+{
+  "modules": [
+    {"module": "staff", "created": [{"id": "115575700000000000", "displayNumber": "S-000001", "publicId": null}]},
+    {"module": "user", "created": [{"id": "115575700000000001", "displayNumber": "M-000001", "publicId": "0b5c..."}]}
+  ]
+}
+```
+
+- `modules` は投入した順（staff → user → item → order → notice）。`seed all` は 5 要素、それ以外は 1 要素
+- `created` は作ったものを作った順に並べる。`publicId` は会員と注文だけが持ち、ほかは `null`
+- 投入するモジュールに 1 件でもデータ（停止中・削除済みを含む）があれば、何も書かずに `CONFLICT`（4）
+- 定義ファイルが無い・JSON の形の誤り・知らない項目・参照（会員のメールアドレス・商品名）が解決できないときは、何も書かずに `VALIDATION`（5）
+- 書いている途中で core が失敗したら、その失敗の `error.code` と終了コードで止まり、それまでに書いた分は残る。`error.message` にどの定義ファイルの何件目か書いてある
+- `seed staff` と `seed all` は `--actor` を取らない。それ以外は `--actor` が要り、権限が無ければ `FORBIDDEN`（7）
+- 契約の追加なので `contractVersion` は 1 のまま

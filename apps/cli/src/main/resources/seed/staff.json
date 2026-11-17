@@ -1,0 +1,11 @@
+{
+  "bootstrap": {"email": "admin@example.com", "name": "管理者", "password": "demo-pass-001"},
+  "staff": [
+    {"email": "member-staff@example.com", "name": "会員担当", "password": "demo-pass-002", "permissions": ["member:write"]},
+    {"email": "catalog@example.com", "name": "商品とお知らせの担当", "password": "demo-pass-003", "permissions": ["item:write", "notice:write"]},
+    {"email": "orders@example.com", "name": "注文担当", "password": "demo-pass-004", "permissions": ["order:read", "order:write"]},
+    {"email": "approver@example.com", "name": "承認担当", "password": "demo-pass-005", "permissions": ["order:read", "order:cancel-approve"]},
+    {"email": "dashboard@example.com", "name": "dashboard 用", "password": "demo-pass-006", "permissions": ["member:read", "order:read"]},
+    {"email": "former@example.com", "name": "停止中の管理者", "password": "demo-pass-007", "permissions": ["member:read"], "status": "suspended", "suspendReason": "異動"}
+  ]
+}

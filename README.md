@@ -34,7 +34,7 @@ apps/cli/build/install/core-cli/bin/core-cli order complete O-000001 --actor S-0
 - 全てのコマンドが `--json` と終了コードを持つ。形は [docs/json-contract.md](docs/json-contract.md)（dashboard が読む契約）
 - DB のパスは `--db` か環境変数 `CORE_DB_PATH`
 - カレントディレクトリの `.env` を読む。同じ名前の環境変数があればそちらが優先される
-- `db`・`user authenticate`・`staff authenticate`・`staff bootstrap` を除く全てのコマンドは、閲覧を含めて `--actor`（操作した管理者の内部 ID か S- の番号）を必須で取る。いて有効で権限を持つかは core のユースケースが確かめ、だめなら終了コード 7（FORBIDDEN）
+- `db`・`user authenticate`・`staff authenticate`・`staff bootstrap`・`seed staff`・`seed all` を除く全てのコマンドは、閲覧を含めて `--actor`（操作した管理者の内部 ID か S- の番号）を必須で取る。いて有効で権限を持つかは core のユースケースが確かめ、だめなら終了コード 7（FORBIDDEN）
 - 権限は 8 種類（`member:read`・`member:write`・`order:read`・`order:write`・`order:cancel-approve`・`item:write`・`notice:write`・`staff:admin`）。最初の管理者は `staff bootstrap` で作る
 - 人向けの表示の時刻だけ JST。`--json` は UTC
 - 人向けの表示では、操作した人を番号で出す（「管理者 S-000001」）。`--json` の `createdBy`・`updatedBy` は内部 ID のまま
@@ -56,7 +56,7 @@ apps/cli/build/install/core-cli/bin/core-cli order complete O-000001 --actor S-0
 | `stock show` / `adjust` / `history` | 済み |
 | `order place` / `list` / `get` / `request-cancel` / `approve-cancel` / `reject-cancel --reason` / `complete` | 済み |
 | `notice create` / `list` / `get` / `update` / `end` / `delete --yes` / `visible` | 済み |
-| `seed` | これから（seed の順番は staff → user → item → order → notice） |
+| `seed all` / `staff` / `user` / `item` / `order` / `notice` | 済み（staff → user → item → order → notice の順） |
 
 ## お知らせ
 
@@ -70,3 +70,32 @@ apps/cli/build/install/core-cli/bin/core-cli notice list --status scheduled --ac
 日時は ISO-8601。時差が無ければ JST として読み、日付だけは受け付けない。公開終了は公開開始より後かつ設定時点より後にする。`--clear-start`・`--clear-end` で日時を消す。同じ項目の設定と消去は同時に指定できない。
 
 公開中は題名・本文・公開終了を変更できる。`end` は公開中だけを今すぐ終了する。`delete --yes` は公開中を含めどの状態からも論理削除する。閲覧は有効な管理者なら許し、書き込みは `notice:write` が要る。
+
+## seed（決まった内容の投入）
+
+```sh
+apps/cli/build/install/core-cli/bin/core-cli db reset --yes
+apps/cli/build/install/core-cli/bin/core-cli seed all
+# 別の定義ファイルで 1 つのモジュールだけ投入する
+apps/cli/build/install/core-cli/bin/core-cli seed item --dir ./my-seed --actor S-000001
+```
+
+- 既定の定義は CLI に同梱している（`apps/cli/src/main/resources/seed/`）。管理者 7 人・会員 10 人・商品 8 件・注文 12 件・お知らせ 6 件で、注文とお知らせは各状態を含む
+- `--dir` を付けると、そのディレクトリの `staff.json`・`user.json`・`item.json`・`order.json`・`notice.json` を読む（`seed all` は 5 つとも要る）
+- データが 1 件でもあるモジュールには投入しない（終了コード 4）。やり直すときは `db reset --yes` で作り直す
+- `seed staff` と `seed all` は `--actor` を取らず、最初の管理者を `staff bootstrap` と同じ方法で作り、その管理者が残りを投入する。`seed user|item|order|notice` は `--actor` が要り、権限は各コマンドと同じ（`seed order` は `order:write` と、却下・承認があれば `order:cancel-approve`）
+- 書く前に確かめるのは、定義ファイルの形と、注文の参照（会員のメールアドレス・商品名）だけ。状態の遷移・在庫の数・日時などの規則は core が確かめ、途中で失敗したら書いた分は残る（エラーに何件目かが出る）
+- 定義ファイルのパスワードは平文。リポジトリは公開しているので、ほかで使わないデモ用の値（`demo-pass-001` など）だけを書き、実在の人やパスワードは書かない
+- 同梱の管理者は `admin@example.com`（`demo-pass-001`、全ての権限）など、会員は `member01@example.com`〜`member10@example.com`（`demo-pass-101`〜`demo-pass-110`）
+
+定義ファイルの形:
+
+| ファイル | 中身 |
+| --- | --- |
+| `staff.json` | `bootstrap`（`email`・`name`・`password`）と `staff` の並び（`email`・`name`・`password`・`permissions`・`status`（`active`/`suspended`）・`suspendReason`） |
+| `user.json` | `users` の並び（`email`・`name`・`password`・`status`・`suspendReason`） |
+| `item.json` | `items` の並び（`name`・`description`・`price`・`stock`（初期在庫、理由「初期在庫」で調整）・`status`（`unpublished`/`published`/`deleted`）） |
+| `order.json` | `orders` の並び（`member`（メールアドレス）・`lines`（`item`（商品名）・`quantity`）・`steps`（`op`: `request-cancel`/`reject-cancel`/`approve-cancel`/`complete`、`reason`）） |
+| `notice.json` | `notices` の並び（`title`・`body`・`start`・`end`（実行した時刻からの ISO-8601 の期間、例 `-P3D`・`PT12H`）・`endNow`・`deleted`） |
+
+知らない項目は誤り（終了コード 5）になる。時刻は全て実行した時刻で、過去の日付への投入はしない。

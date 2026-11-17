@@ -1,0 +1,16 @@
+{
+  "orders": [
+    {"member": "member01@example.com", "lines": [{"item": "ノート", "quantity": 2}, {"item": "ボールペン", "quantity": 1}]},
+    {"member": "member02@example.com", "lines": [{"item": "マグカップ", "quantity": 1}], "steps": [{"op": "complete"}]},
+    {"member": "member03@example.com", "lines": [{"item": "ノート", "quantity": 1}, {"item": "消しゴム", "quantity": 2}], "steps": [{"op": "complete"}]},
+    {"member": "member04@example.com", "lines": [{"item": "トートバッグ", "quantity": 1}], "steps": [{"op": "request-cancel", "reason": "色を間違えた"}]},
+    {"member": "member05@example.com", "lines": [{"item": "ボールペン", "quantity": 3}], "steps": [{"op": "request-cancel", "reason": "数を間違えた"}, {"op": "approve-cancel"}]},
+    {"member": "member06@example.com", "lines": [{"item": "マグカップ", "quantity": 2}], "steps": [{"op": "request-cancel", "reason": "届くのが遅い"}, {"op": "reject-cancel", "reason": "発送の準備が済んでいる"}]},
+    {"member": "member07@example.com", "lines": [{"item": "ノート", "quantity": 3}], "steps": [{"op": "request-cancel", "reason": "要らなくなった"}, {"op": "reject-cancel", "reason": "受付の期限を過ぎている"}, {"op": "complete"}]},
+    {"member": "member08@example.com", "lines": [{"item": "消しゴム", "quantity": 1}], "steps": [{"op": "complete"}]},
+    {"member": "member09@example.com", "lines": [{"item": "トートバッグ", "quantity": 2}]},
+    {"member": "member01@example.com", "lines": [{"item": "マグカップ", "quantity": 1}, {"item": "ノート", "quantity": 1}], "steps": [{"op": "complete"}]},
+    {"member": "member02@example.com", "lines": [{"item": "ボールペン", "quantity": 2}], "steps": [{"op": "request-cancel"}, {"op": "approve-cancel"}]},
+    {"member": "member03@example.com", "lines": [{"item": "消しゴム", "quantity": 5}]}
+  ]
+}
